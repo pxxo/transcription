@@ -9,6 +9,7 @@ from flask_cors import CORS
 import json
 from sudachipy import tokenizer
 from sudachipy import dictionary
+import torch
 
 app = Flask(__name__)
 CORS(app)
@@ -130,8 +131,11 @@ def transcribe_api():
                 if audio_segment.shape[-1] < 1000:
                     continue
                 result = model.transcribe(
-                    audio_segment, language="ja", verbose=False, word_timestamps=True
+                    audio_segment, language="ja", verbose=False  # word_timestampsを削除
                 )
+                # --- ここでメモリ解放 ---
+                torch.cuda.empty_cache()
+                # --- ここまで ---
                 seg_start_sec = i * segment_sec
                 if "segments" in result and result["segments"]:
                     for seg in result["segments"]:
